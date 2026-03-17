@@ -14,13 +14,13 @@ export class S3Service {
 
   constructor() {
     this.client = new S3Client({
-      region: process.env.AWS_REGION!,
+      region: process.env.AWS_REGION_KEY!,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY!,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
         secretAccessKey: process.env.AWS_SECRET_KEY_ID!,
       },
     });
-    this.bucketName = process.env.AWS_BUCKET_NAME!;
+    this.bucketName = process.env.AWS_BUCKET_NAME_ID!;
   }
 
   /**
