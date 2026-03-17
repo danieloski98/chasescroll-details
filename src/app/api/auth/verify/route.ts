@@ -15,16 +15,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-    const otpDoc = await Otp.findOne({ code: otp });
-    console.log("USER Details", user);
-    console.log("OTP DETAILS", otpDoc);
-
-    if (user?._id.toString() !== otpDoc.userId) {
-      return NextResponse.json({ error: "Invalid OTP." }, { status: 400 });
-    }
+    const otpDoc = await Otp.findOne({ code: otp, userId: user._id });
 
     if (!otpDoc) {
-      return NextResponse.json({ error: "Invalid OTP Code" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid OTP code." }, { status: 400 });
     }
 
     if (otpDoc.expiresAt < new Date()) {

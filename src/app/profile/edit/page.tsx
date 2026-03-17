@@ -30,7 +30,12 @@ export default function EditProfilePage() {
   const { handleSubmit, formState: { isSubmitting } } = methods;
 
   const onSubmit = async (data: OnboardingFormData) => {
-    console.log("Saving changes:", data);
+    try {
+      console.log("Saving changes:", data);
+      // Implementation for saving profile would go here
+    } catch (error: unknown) {
+      console.error(error);
+    }
   };
 
   return (
@@ -51,7 +56,7 @@ export default function EditProfilePage() {
             color="primary" 
             className="bg-indigo-600 font-bold px-8 shadow-lg shadow-indigo-100"
             isLoading={isSubmitting}
-            onPress={() => methods.handleSubmit(onSubmit)()}
+            onPress={() => methods.handleSubmit(onSubmit as any)()}
           >
             Save Changes
           </Button>

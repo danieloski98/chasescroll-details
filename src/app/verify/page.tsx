@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Button, Card, CardBody, addToast } from "@heroui/react";
+import { Button, Card, CardBody, Skeleton, addToast } from "@heroui/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from 'react'
 
-export default function VerifyOtpPage() {
+
+function VerifyOtpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -67,7 +69,7 @@ export default function VerifyOtpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       {/* Header / Logo */}
       <div className="absolute top-8 left-8 flex items-center gap-2">
         <div className="bg-indigo-600 p-1.5 rounded-md text-white font-bold">
@@ -140,4 +142,19 @@ export default function VerifyOtpPage() {
       </p>
     </div>
   );
+}
+
+
+export default function VerifyPage() {
+  return (
+    <Suspense 
+       fallback={
+         <div className="w-full h-[100px]">
+          <Skeleton className="w-full h-20" />
+         </div>
+       }
+    >
+      <VerifyOtpPage />
+    </Suspense>
+  )
 }

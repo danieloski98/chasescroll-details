@@ -6,13 +6,10 @@ import User from "@/services/db/models/User";
 export async function GET() {
   try {
     await connectDB();
-
     const headersList = await headers();
-    // Assumes middleware has run and set the 'x-user-id' header
     const userId = headersList.get("x-user-id");
 
     if (!userId) {
-      // This case should be handled by middleware, but serves as a fallback.
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
