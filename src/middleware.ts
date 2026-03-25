@@ -14,7 +14,6 @@ export async function middleware(request: NextRequest) {
   try {
     const { payload } = await jose.jwtVerify(token, secret);
     const requestHeaders = new Headers(request.headers);
-    console.log('PAYLOAD FROM MIDDLEWARE', payload);
     requestHeaders.set('x-user-id', payload.userId as string);
 
     return NextResponse.next({

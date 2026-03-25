@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/services/db";
 import User from "@/services/db/models/User";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: any }
 ) {
   try {
     await connectDB();
-    const { id } = await params;
+    const { id } = params;
 
     console.log('[USER ID]', id);
 
@@ -18,8 +18,7 @@ export async function GET(
       return NextResponse.json({ error: "Employee not found" }, { status: 404 });
     }
 
-        console.log('[USER DETAILS]', user);
-
+    console.log('[USER DETAILS]', user);
 
     return NextResponse.json(user);
   } catch (error) {
