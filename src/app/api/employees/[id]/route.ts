@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
 
     console.log('[USER ID]', id);
 
