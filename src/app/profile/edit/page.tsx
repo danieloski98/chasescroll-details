@@ -1,45 +1,116 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { onboardingSchema, type OnboardingFormData } from "@/schemas/onboardingSchema";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
-import { Button, Card, CardBody, Avatar, Divider } from "@heroui/react";
+import { Button, Card, CardBody, Divider, Spinner, addToast } from "@heroui/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 export default function EditProfilePage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  
   const methods = useForm<OnboardingFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: yupResolver(onboardingSchema) as any,
     defaultValues: {
-      firstName: "Johnathan",
-      lastName: "Maxwell",
-      companyEmail: "j.maxwell@chasescroll.com",
-      phoneNumber: "+1 (555) 123-4567",
-      position: "developer",
-      dateOfBirth: new Date("1990-01-01"),
-      address: "123 Design Street, Suite 400, San Francisco, CA 94103",
-      bio: "A dedicated creative leader with over 12 years of experience in user-centric design and brand strategy.",
+      firstName: "",
+      lastName: "",
+      companyEmail: "",
+      phoneNumber: "",
+      position: "",
+      dateOfBirth: undefined,
+      address: "",
+      bio: "",
       profilePhoto: null,
     },
   });
 
-  const { handleSubmit, formState: { isSubmitting } } = methods;
+  const { handleSubmit, formState: { isSubmitting }, reset } = methods;
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const data = await res.json();
+        
+        // Format date for the input field (YYYY-MM-DD)
+        if (data.dateOfBirth) {
+          data.dateOfBirth = new Date(data.dateOfBirth).toISOString().split('T')[0];
+        }
+        
+        reset(data);
+      } catch (error: unknown) {
+        console.error(error);
+        addToast({ title: "Error", description: "Failed to load profile", color: "danger" });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [reset]);
 
   const onSubmit = async (data: OnboardingFormData) => {
     try {
-      console.log("Saving changes:", data);
-      // Implementation for saving profile would go here
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let imageUrl = (data as any).image;
+
+      // Handle image upload if a new file was selected
+      if (data.profilePhoto instanceof File) {
+        const formData = new FormData();
+        formData.append("file", data.profilePhoto);
+        
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (!uploadRes.ok) throw new Error("Image upload failed");
+        const uploadData = await uploadRes.json();
+        imageUrl = uploadData.url;
+      }
+
+      // Prepare payload
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { profilePhoto: _, ...rest } = data;
+      const payload = { ...rest, image: imageUrl };
+
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to update profile");
+      
+      addToast({ title: "Success", description: "Profile updated successfully", color: "success" });
+      router.push("/profile");
+      router.refresh();
     } catch (error: unknown) {
       console.error(error);
+      const message = error instanceof Error ? error.message : "Failed to save changes";
+      addToast({ title: "Error", description: message, color: "danger" });
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50/50 flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-[whitesmoke]">
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between">
         <Link href="/profile" className="flex items-center gap-2 group">
@@ -51,12 +122,11 @@ export default function EditProfilePage() {
           <span className="text-sm font-bold text-slate-600">Back to Profile</span>
         </Link>
         <div className="flex items-center gap-4">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">Draft saved 2m ago</span>
           <Button 
             color="primary" 
             className="bg-indigo-600 font-bold px-8 shadow-lg shadow-indigo-100"
             isLoading={isSubmitting}
-            onPress={() => methods.handleSubmit(onSubmit as any)()}
+            onPress={() => handleSubmit(onSubmit)()}
           >
             Save Changes
           </Button>
@@ -70,22 +140,13 @@ export default function EditProfilePage() {
         </div>
 
         <FormProvider {...methods}>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             
             {/* Avatar Section */}
             <Card shadow="none" className="border border-gray-100 rounded-3xl bg-white overflow-visible">
               <CardBody className="p-10 flex flex-col items-center">
-                <div className="relative mb-6">
-                  <Avatar 
-                    src="/images/user-placeholder.jpg" 
-                    className="w-32 h-32 text-large ring-4 ring-indigo-50"
-                  />
-                  <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-md border border-gray-100 cursor-pointer hover:bg-slate-50 transition-colors">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" />
-                    </svg>
-                  </div>
+                <div className="mb-6">
+                  <ImageUpload />
                 </div>
                 <h3 className="text-sm font-bold text-slate-900">Change Profile Photo</h3>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">Recommended: 400x400px • Max 5MB</p>
@@ -146,15 +207,12 @@ export default function EditProfilePage() {
               </CardBody>
             </Card>
 
-            <div className="flex justify-between items-center py-6">
-              <Button variant="flat" color="danger" className="font-bold px-6 bg-red-50 text-red-600 border-none">
-                Delete Account
-              </Button>
+            <div className="flex justify-end items-center py-6">
               <div className="flex gap-4">
                 <Link href="/profile">
                   <Button variant="light" className="font-bold px-8 text-slate-500">Cancel</Button>
                 </Link>
-                <Button type="submit" color="primary" className="bg-indigo-600 font-bold px-10 shadow-lg shadow-indigo-100">
+                <Button type="submit" color="primary" className="bg-indigo-600 font-bold px-10 shadow-lg shadow-indigo-100" isLoading={isSubmitting}>
                   Save All Changes
                 </Button>
               </div>

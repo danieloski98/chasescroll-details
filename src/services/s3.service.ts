@@ -35,9 +35,10 @@ export class S3Service {
     fileName: string,
     contentType: string
   ): Promise<string> {
+    const newFileName = fileName.trim().replace(/\s+/g, '-').toLowerCase();
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
-      Key: fileName,
+      Key: newFileName,
       Body: fileBuffer,
       ContentType: contentType,
     });
@@ -46,7 +47,7 @@ export class S3Service {
       await this.client.send(command);
       // Construct the URL. This assumes the bucket is publicly accessible or you're using a CDN.
       // If the bucket is private, you should use getSignedUrl from @aws-sdk/s3-request-presigner.
-      return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+      return `https://${this.bucketName}.s3.${process.env.AWS_REGION_KEY}.amazonaws.com/${newFileName}`;
     } catch (error) {
       console.error("Error uploading image to S3:", error);
       throw new Error("Failed to upload image to S3.");

@@ -20,7 +20,7 @@ export const Input: React.FC<InputProps> = ({ name, label, ...rest }) => {
       {...register(name)}
       label={label}
       labelPlacement="outside"
-      variant="bordered"
+      variant="flat"
       radius="md"
       size="lg"
       isInvalid={!!error}
@@ -38,7 +38,7 @@ export const Input: React.FC<InputProps> = ({ name, label, ...rest }) => {
           "px-4",
           "group-data-[focus=true]:border-indigo-500",
         ].join(" "),
-        input: "text-base text-black placeholder:text-slate-400 font-medium",
+        input: "text-black placeholder:text-slate-400 font-medium",
         errorMessage: "text-xs font-medium text-red-500 mt-1",
       }}
     />

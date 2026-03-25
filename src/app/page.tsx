@@ -1,217 +1,82 @@
 "use client";
 
 import React from "react";
-import { useForm, FormProvider } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { onboardingSchema, type OnboardingFormData } from "@/schemas/onboardingSchema";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Textarea } from "@/components/ui/Textarea";
 import { Button, Card, CardBody } from "@heroui/react";
-import { ImageUpload } from "@/components/ui/ImageUpload";
 import Image from "next/image";
-import {addToast} from "@heroui/react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function Onboarding() {
-  const router = useRouter();
-  const methods = useForm<OnboardingFormData>({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      resolver: yupResolver(onboardingSchema) as any,
-      defaultValues: {
-      firstName: "",
-      lastName: "",
-      companyEmail: "",
-      phoneNumber: "",
-      position: "",
-      dateOfBirth: undefined,
-      address: "",
-      bio: "",
-      profilePhoto: null,
-    },
-  });
-
-  const { handleSubmit, formState: { isSubmitting } } = methods;
-
-  const onSubmit = async (data: OnboardingFormData) => {
-    try {
-      let imageUrl = "";
-      if (data.profilePhoto) {
-        const formData = new FormData();
-        formData.append("file", data.profilePhoto as File);
-        
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        
-        if (!uploadRes.ok) throw new Error("Upload failed");
-        const uploadData = await uploadRes.json();
-        imageUrl = uploadData.url;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { profilePhoto: _, ...rest } = data;
-      const payload = { ...rest, image: imageUrl };
-
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Submission failed");
-      
-      addToast({
-        title: "Success",
-        description: "Profile saved successfully!",
-        color: 'success'
-      });
-      router.push("/login");
-    } catch (error: unknown) {
-      console.error(error);
-      const errorMessage = error instanceof Error ? error.message : "An error occurred. Please try again.";
-      addToast({
-        title: "Error",
-        description: errorMessage,
-        color: "danger"
-      })  
-    }
-  };
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-200 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header with Logo */}
-        <div className="flex items-center gap-2 mb-10">
-          <div className="">
-            <Image 
-              src="/images/chasescrollLogo.png" 
-              alt="Chasescroll Logo" 
-              width={24} 
-              height={24} 
-              className=""
-            />
-          </div>
-          <span className="text-xl font-bold text-gray-900">Chasescroll Employee Portal</span>
+    <div className="min-h-screen bg-[whitesmoke] flex flex-col items-center justify-center p-6 text-black">
+      {/* Logo and Header */}
+      <div className="mb-12 flex flex-col items-center text-center">
+        <div className="bg-white p-4 rounded-2xl shadow-sm mb-6">
+          <Image 
+            src="/images/chasescrollLogo.png" 
+            alt="Chasescroll Logo" 
+            width={60} 
+            height={60} 
+          />
         </div>
-
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Employee Profile</h1>
-          <p className="mt-2 text-lg text-gray-500">
-            Complete the professional profile to finalize the onboarding process.
-          </p>
-        </div>
-
-        <FormProvider {...methods}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-12">
-              {/* Profile Photo Section */}
-            <Card shadow="none" className="bg-gray-50/50 border border-gray-100 rounded-2xl">
-              <CardBody className="p-8">
-                <div className="flex flex-col sm:flex-row items-center gap-8">
-                  <ImageUpload />
-                  <div className="flex-1 text-center sm:text-left">
-                    <h3 className="text-lg font-semibold text-gray-900">Profile Photo</h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      PNG or JPG, max size 5MB. 400x400px recommended.
-                    </p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* Form Fields Section */}
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-8">
-                <Input 
-                  name="firstName" 
-                  label="First Name" 
-                  placeholder="e.g. Michael" 
-                />
-                <Input 
-                  name="lastName" 
-                  label="Last Name" 
-                  placeholder="e.g. Scott" 
-                />
-                
-                <Input 
-                  name="companyEmail" 
-                  label="Company Email" 
-                  type="email" 
-                  placeholder="name@company.com" 
-                />
-                <Input 
-                  name="phoneNumber" 
-                  label="Phone Number" 
-                  placeholder="+1 (555) 000-0000" 
-                />
-                
-                <Select
-                  name="position"
-                  label="Position"
-                  placeholder="Select position"
-                  options={[
-                    { value: "developer", label: "Developer" },
-                    { value: "designer", label: "Designer" },
-                    { value: "manager", label: "Manager" },
-                  ]}
-                />
-                
-                <Input 
-                  name="dateOfBirth" 
-                  label="Date of Birth" 
-                  type="date" 
-                />
-              </div>
-
-              <div className="space-y-8">
-                <Input 
-                  name="address" 
-                  label="Address" 
-                  placeholder="123 Corporate Blvd, Suite 100" 
-                />
-                <Textarea 
-                  name="bio" 
-                  label="Bio" 
-                  placeholder="Briefly describe your experience and skills..." 
-                  minRows={4} 
-                />
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end items-center gap-4 pt-8 border-t border-gray-100">
-              <Button
-                type="button"
-                variant="light"
-                size="lg"
-                className="px-8 font-semibold text-gray-600 hover:bg-gray-50"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                color="primary"
-                size="lg"
-                isLoading={isSubmitting}
-                className="px-10 font-bold bg-indigo-600 shadow-lg shadow-indigo-200"
-              >
-                Save Profile
-              </Button>
-            </div>
-          </form>
-        </FormProvider>
-
-        {/* Footer */}
-        <div className="mt-20 pt-8 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-          <p>© 2024 HR Systems Inc.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-gray-600 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-gray-600 transition-colors">Support</a>
-          </div>
-        </div>
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-3">Chasescroll Portal</h1>
+        <p className="text-lg text-slate-500 max-w-md">
+          The central hub for employee onboarding, profile management, and internal directory search.
+        </p>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+        {/* Onboarding Link */}
+        <Link href="/onboarding" className="group">
+          <Card className="h-full border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden bg-white">
+            <CardBody className="p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">New Employee</h3>
+              <p className="text-slate-500 text-sm mb-6">Complete your professional profile to finalize the onboarding process.</p>
+              <Button color="primary" variant="flat" className="mt-auto font-bold px-8">Get Started</Button>
+            </CardBody>
+          </Card>
+        </Link>
+
+        {/* Login Link */}
+        <Link href="/login" className="group">
+          <Card className="h-full border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden bg-white">
+            <CardBody className="p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Staff Login</h3>
+              <p className="text-slate-500 text-sm mb-6">Access your dashboard to view and manage your professional details.</p>
+              <Button color="success" variant="flat" className="mt-auto font-bold px-8">Login Now</Button>
+            </CardBody>
+          </Card>
+        </Link>
+
+        {/* Search Link */}
+        <Link href="/search" className="group">
+          <Card className="h-full border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden bg-white">
+            <CardBody className="p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Directory</h3>
+              <p className="text-slate-500 text-sm mb-6">Search for colleagues by name or email in the employee directory.</p>
+              <Button color="warning" variant="flat" className="mt-auto font-bold px-8">Search All</Button>
+            </CardBody>
+          </Card>
+        </Link>
+      </div>
+
+      <footer className="mt-20 text-slate-400 text-sm font-medium">
+        © 2026 Chasescroll Technology Inc. Internal HR System.
+      </footer>
     </div>
   );
 }
