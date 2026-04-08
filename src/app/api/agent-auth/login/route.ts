@@ -3,6 +3,7 @@ import connectDB from "@/services/db";
 import Agent from "@/services/db/models/Agent";
 import Otp from "@/services/db/models/Otp";
 import { EmailService } from "@/services/emailservice";
+import { ApiResponse } from "@/utils/Response";
 
 export async function POST(request: Request) {
   try {
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Agent not found." }, { status: 404 });
     }
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await Otp.findOneAndUpdate(
@@ -35,8 +36,8 @@ export async function POST(request: Request) {
       subject: "Your Agent OTP Code",
       html: `<h1>Your OTP is: ${otpCode}</h1><p>It expires in 10 minutes.</p>`,
     });
-
-    return NextResponse.json({ message: "OTP sent successfully" });
+    const response = new ApiResponse<Record<string, any>>({ message: 'OTP sent successfully', data: null });
+    return NextResponse.json(response, { status: 201});
   } catch (error) {
     console.error("Agent login OTP error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

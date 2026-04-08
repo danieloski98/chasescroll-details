@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/services/db";
 import Agent from "@/services/db/models/Agent";
 import { agentOnboardingSchema } from '@/schemas/agent.schema'
+import { ApiResponse } from "@/utils/Response";
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +25,8 @@ export async function POST(request: Request) {
 
     const existingAgent = await Agent.findOne({ email: normalizedEmail });
     if (existingAgent) {
-      return NextResponse.json({ error: "Agent with this email already exists" }, { status: 409 });
+      const response = new ApiResponse({ data:  null, message: 'Agent with this email already exisits'});
+      return NextResponse.json(response, { status: 409 });
     }
 
     const newAgent = new Agent({
@@ -36,8 +38,8 @@ export async function POST(request: Request) {
     });
 
     await newAgent.save();
-
-    return NextResponse.json({ message: "Agent created successfully", agent: newAgent }, { status: 201 });
+    const response = new ApiResponse<Record<string, any>>({ message: 'Agent created successfully', data: { agent: newAgent }, success: true })
+    return NextResponse.json(response, { status: 201});
   } catch (error) {
     console.error("Agent signup API error:", error);
 

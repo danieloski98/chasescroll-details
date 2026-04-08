@@ -25,10 +25,10 @@ export async function POST(request: Request) {
     }
 
     // check if its a chasescroll email
-    const isChasescrollEmail = newBody.companyEmail.endsWith("@chasescroll.com");
-    if (!isChasescrollEmail) {
-      return NextResponse.json({ error: "Invalid company email." }, { status: 400 });
-    }
+    // const isChasescrollEmail = newBody.companyEmail.endsWith("@chasescroll.com");
+    // if (!isChasescrollEmail) {
+    //   return NextResponse.json({ error: "Invalid company email." }, { status: 400 });
+    // }
 
     const newUser = new User(newBody);
     await newUser.save();
